@@ -4,6 +4,6 @@ bool InetAddr::operator==(const InetAddr& other) {
   return ip == other.ip && port == other.port;
 }
 
-std::size_t InetAddr::operator()(const InetAddr& addr) const {
+std::size_t InetAddrHash::operator()(const InetAddr& addr) const {
   return std::hash<std::string>()(addr.ip) ^ std::hash<int>()(addr.port);
 }

@@ -23,8 +23,14 @@ class DataFactory {
  public:
   DataFactory();
   ~DataFactory();
-  static DataType charToType(char c) { return (DataType)c; }
-  static char typeToChar(DataType t) { return (char)t; }
+  template <class T>
+  static T charTo(char c) {
+    return (T)c;
+  }
+  template <class T>
+  static char toChar(T t) {
+    return (char)t;
+  }
   template <class T>
   static T stringTo(std::string s) {
     T res;
@@ -47,19 +53,15 @@ class DemoData {
   DataHeader header;
   DataBody body;
   static const DataFactory factory;
-  static const int typeIdx = 0;
-  static const int timestampIdx = 1;
-  static const int contentIdx = timestampIdx + sizeof(time_t);
 
  public:
-  DemoData() = default;
-  DemoData(DemoData& other) = default;
+  DemoData();
   DemoData(DataType type);
   DemoData(DataType type, std::string content);
   DemoData(DataType type, std::string timestamp, std::string content);
-  /// Layout: type(1 char) timestamp(time_t) content
+  /// Layout: type(1 char) nTimestamp(1 char) timestamp(time_t) content
   DemoData(std::string source);
-  std::string to() const;
+  std::string toStr() const;
   long long getSize() const;
   bool isNull() const;
   DataHeader getHeader() const;

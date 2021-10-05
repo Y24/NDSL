@@ -6,13 +6,15 @@
                         "command": "/usr/bin/g++",
                         "args": [
                                 "-g",
-                                "${file}",
+                                // "/home/y24/NDSL/test/test_demo_data.cpp",
+                                "/home/y24/NDSL/test/test_io_handler.cpp",
                                 "-I",
                                 "/home/y24/NDSL/include",
                                 "-o",
                                 "${fileDirname}/${fileBasenameNoExtension}",
                                 "/home/y24/NDSL/src/content_generator.cpp",
                                 "/home/y24/NDSL/src/demo_data.cpp",
+                                "/home/y24/NDSL/src/io_handler.cpp",
                         ],
                         "options": {
                                 "cwd": "${fileDirname}",

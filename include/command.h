@@ -2,7 +2,7 @@
 #define _COMMAND_H 1
 #include <string>
 
-#include "data.h"
+#include "demo_data.h"
 #include "string_spliter.h"
 enum CommandType {
   command_invalid,

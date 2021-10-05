@@ -3,8 +3,8 @@
 #include "io_handler.h"
 IOHandler::IOHandler(int fd) : fd(fd) {}
 DemoData IOHandler::read() {
-  char buf[sizeof(long long) + 1];
-  if (int cnt = ::read(fd, buf, sizeof(long long)); cnt == -1) {
+  char buf[100];
+  if (int cnt = ::read(fd, buf, 1); cnt == -1) {
     inPanic(fd);
     return DemoData(data_invalid);
   } else if (cnt == 0) {
@@ -12,29 +12,41 @@ DemoData IOHandler::read() {
     close(fd);
     return DemoData(conn_close);
   } else {
-    buf[cnt] = '\0';
-    int size = factory.stringTo<long long>(std::string(buf));
-    char* source = new char[size + 1];
-    if (int cnt = ::read(fd, source, size); cnt < size) {
+    int nSize = factory.charTo<int>(buf[0]);
+    if (int cnt = ::read(fd, buf, nSize); cnt < nSize) {
       inPanic(fd);
       return DemoData(data_invalid);
+    }
+    buf[nSize] = '\0';
+    long long size = factory.stringTo<long long>(std::string(buf));
+    char* source = new char[size];
+    if (long long cnt = ::read(fd, source, size); cnt < size) {
+      inPanic(fd);
+      delete[] source;
+      return DemoData(data_invalid);
     } else {
-      source[size] = '\0';
-      auto res = DemoData(std::string(source));
+      auto src = std::string(size, '0');
+      for (int i = 0; i < size; i++) {
+        src[i] = source[i];
+      }
+      auto res = DemoData(src);
       delete[] source;
       return res;
     }
   }
 }
 bool IOHandler::write(DemoData data) {
-  if (int cnt = ::write(fd, factory.toString<long long>(data.getSize()).data(),
-                        sizeof(long long));
-      cnt < sizeof(long long)) {
+  std::string sizeStr = factory.toString<long long>(data.getSize());
+  char nSize = factory.toChar<int>(sizeStr.size());
+  std::string nSizeStr = std::string(1, nSize);
+  if (::write(fd, nSizeStr.data(), 1) < 1 ||
+      ::write(fd, sizeStr.data(), sizeStr.size()) < sizeStr.size()) {
     outPanic(fd);
     return false;
   }
-  if (int cnt = ::write(fd, data.to().data(), data.getSize());
-      cnt < data.getSize()) {
+  std::string src = data.toStr();
+  int nSrc = src.size();
+  if (int cnt = ::write(fd, src.data(), src.size()); cnt < src.size()) {
     outPanic(fd);
     return false;
   }

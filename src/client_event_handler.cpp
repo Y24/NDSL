@@ -12,14 +12,8 @@ void EventHandler::do_clean() {
 }
 void EventHandler::do_read(int fd, DemoData &data) {
   if (fd == STDIN_FILENO) {
-    /// TODO: command execute
     auto command = commandHandler.get(fd);
     std::vector<Session> sessions;
-    /* std::unordered_map<int, int> remotePool;
-  /// clientfd: clientfd in the same session
-  std::unordered_map<int, int> localPool;
-  /// whether paired
-  std::unordered_map<int, bool> flag; */
     switch (command.type) {
       case command_invalid:
         fprintf(stderr, "Input command is invalid!\n");
@@ -76,7 +70,8 @@ void EventHandler::do_read(int fd, DemoData &data) {
         sessionManager.merge({fd, localPool[fd]});
       } else {
         /// do session_pair
-        data = DemoData(session_pair, factory.toString(remotePool[localPool[fd]]));
+        data =
+            DemoData(session_pair, factory.toString(remotePool[localPool[fd]]));
         eventManager.modify_event(fd, EPOLLOUT);
       }
       break;
@@ -87,7 +82,7 @@ void EventHandler::do_read(int fd, DemoData &data) {
       bool status = data.getBody().content == "OK";
       if (status && flag[fd] && localPool.count(fd) && flag[localPool[fd]]) {
         data = DemoData(delivery_data, factory.toString(time(nullptr)),
-                    ContentGenerator().generate(12));
+                        ContentGenerator().generate(12));
         eventManager.modify_event(fd, EPOLLOUT);
       } else {
         fprintf(stderr, "ClientEventHandler do_read: session_pair fails\n");
