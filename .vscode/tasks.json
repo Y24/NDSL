@@ -7,11 +7,15 @@
                         "args": [
                                 "-g",
                                 "${file}",
+                                "-I",
+                                "/home/y24/NDSL/include",
                                 "-o",
-                                "${fileDirname}/${fileBasenameNoExtension}"
+                                "${fileDirname}/${fileBasenameNoExtension}",
+                                "/home/y24/NDSL/src/content_generator.cpp",
+                                "/home/y24/NDSL/src/demo_data.cpp",
                         ],
                         "options": {
-                                "cwd": "${fileDirname}"
+                                "cwd": "${fileDirname}",
                         },
                         "problemMatcher": [
                                 "$gcc"

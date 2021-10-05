@@ -2,31 +2,31 @@
 ///
 #include "io_handler.h"
 IOHandler::IOHandler(int fd) : fd(fd) {}
-Data IOHandler::read() {
+DemoData IOHandler::read() {
   char buf[sizeof(long long) + 1];
   if (int cnt = ::read(fd, buf, sizeof(long long)); cnt == -1) {
     inPanic(fd);
-    return Data(data_invalid);
+    return DemoData(data_invalid);
   } else if (cnt == 0) {
     fprintf(stderr, "server close.\n");
     close(fd);
-    return Data(conn_close);
+    return DemoData(conn_close);
   } else {
     buf[cnt] = '\0';
     int size = factory.stringTo<long long>(std::string(buf));
     char* source = new char[size + 1];
     if (int cnt = ::read(fd, source, size); cnt < size) {
       inPanic(fd);
-      return Data(data_invalid);
+      return DemoData(data_invalid);
     } else {
       source[size] = '\0';
-      auto res = Data(std::string(source));
+      auto res = DemoData(std::string(source));
       delete[] source;
       return res;
     }
   }
 }
-bool IOHandler::write(Data data) {
+bool IOHandler::write(DemoData data) {
   if (int cnt = ::write(fd, factory.toString<long long>(data.getSize()).data(),
                         sizeof(long long));
       cnt < sizeof(long long)) {

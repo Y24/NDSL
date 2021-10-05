@@ -1,4 +1,4 @@
-#ifdef _SOCKET_SERVER_H
+#ifndef _SOCKET_SERVER_H
 #define _SOCKET_SERVER_H 1
 #include <arpa/inet.h>
 #include <errno.h>
@@ -10,9 +10,12 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include<string>
+
+#include <string>
+
 #include "server_epoll_manager.h"
 
+/// The Top class running in the server side.
 class SocketServer {
  private:
   std::string ip;
@@ -27,4 +30,4 @@ class SocketServer {
   void serve(int size, int nEvents);
   ~SocketServer();
 };
-#endif // socket_server.h
+#endif  // socket_server.h

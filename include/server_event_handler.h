@@ -21,13 +21,13 @@ class EventHandler {
   /// Note: handle_accpet don't contains the session-pairing work
   /// when accpet successed, write `fd` immidiately back to the
   /// client.
-  void handle_accpet(Data &data);
-  void do_read(int fd, Data &data);
-  void do_write(int fd, Data &data);
+  void handle_accpet(DemoData &data);
+  void do_read(int fd, DemoData &data);
+  void do_write(int fd, DemoData &data);
 
  public:
   EventHandler(int epollFd, int listenFd);
-  void handle(epoll_event *events, int num, Data &data);
+  void handle(epoll_event *events, int num, DemoData &data);
   ~EventHandler();
 };
 #endif // server_event_handler.h

@@ -20,8 +20,8 @@ class IOHandler {
 
  public:
   IOHandler(int fd);
-  Data read();
-  bool write(Data data);
+  DemoData read();
+  bool write(DemoData data);
   ~IOHandler();
 };
 

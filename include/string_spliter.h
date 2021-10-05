@@ -8,7 +8,8 @@ class StringSpliter {
   /* data */
  public:
   StringSpliter(/* args */);
-  std::vector<std::string> split(std::string text, std::string seperator);
+  std::vector<std::string> split(std::string text,
+                                 std::string seperator = "\\s+");
   ~StringSpliter();
 };
-#endif // string_spliter.h
+#endif  // string_spliter.h

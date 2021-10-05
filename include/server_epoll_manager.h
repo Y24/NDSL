@@ -11,7 +11,7 @@ class EpollManager {
   int epollFd;
   epoll_event* events;
   int nEvents;
-  Data data;
+  DemoData data;
 
   EventHandler handler;
 

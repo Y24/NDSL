@@ -11,6 +11,7 @@
 #include <unordered_map>
 
 #include "command.h"
+#include "command_handler.h"
 #include "content_generator.h"
 #include "event_manager.h"
 #include "io_handler.h"
@@ -19,22 +20,25 @@
 class EventHandler {
  private:
   int epollFd;
+  int nContent;
   EventManager eventManager;
   SessionManager sessionManager;
   SessionProductor sessionProductor;
   DataFactory factory;
+  CommandHandler commandHandler;
   /// clientfd: serverfd
   std::unordered_map<int, int> remotePool;
   /// clientfd: clientfd in the same session
   std::unordered_map<int, int> localPool;
   /// whether paired
   std::unordered_map<int, bool> flag;
-  void do_read(int fd, Data &data);
-  void do_write(int fd, Data &data);
+  void do_read(int fd, DemoData &data);
+  void do_write(int fd, DemoData &data);
+  void do_clean();
 
  public:
   EventHandler(int epollFd);
-  void handle(epoll_event *events, int num, Data &data);
+  void handle(epoll_event *events, int num, DemoData &data);
   ~EventHandler();
 };
 

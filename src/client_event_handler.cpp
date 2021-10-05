@@ -1,10 +1,47 @@
 #include "client_event_handler.h"
 
 #include <arpa/inet.h>
-void EventHandler::do_read(int fd, Data &data) {
+void EventHandler::do_clean() {
+  // clean work
+  for (auto [fd, _] : localPool) {
+    close(fd);
+  }
+  remotePool.clear();
+  localPool.clear();
+  flag.clear();
+}
+void EventHandler::do_read(int fd, DemoData &data) {
   if (fd == STDIN_FILENO) {
     /// TODO: command execute
-
+    auto command = commandHandler.get(fd);
+    std::vector<Session> sessions;
+    /* std::unordered_map<int, int> remotePool;
+  /// clientfd: clientfd in the same session
+  std::unordered_map<int, int> localPool;
+  /// whether paired
+  std::unordered_map<int, bool> flag; */
+    switch (command.type) {
+      case command_invalid:
+        fprintf(stderr, "Input command is invalid!\n");
+        break;
+      case session_start:
+        do_clean();
+        sessions = sessionProductor.produce(2 * command.nSession);
+        for (int i = 0; i < 2 * command.nSession; i += 2) {
+          int fd1 = sessions[i].getFd().begin()->second,
+              fd2 = sessions[i + 1].getFd().begin()->second;
+          localPool[fd1] = fd2;
+          localPool[fd2] = fd1;
+          flag[fd1] = flag[fd2] = false;
+        }
+        nContent = command.nContent;
+        break;
+      case session_stop:
+        do_clean();
+        break;
+      default:
+        break;
+    }
     return;
   }
   IOHandler ioHandler(fd);
@@ -39,7 +76,7 @@ void EventHandler::do_read(int fd, Data &data) {
         sessionManager.merge({fd, localPool[fd]});
       } else {
         /// do session_pair
-        data = Data(session_pair, factory.toString(remotePool[localPool[fd]]));
+        data = DemoData(session_pair, factory.toString(remotePool[localPool[fd]]));
         eventManager.modify_event(fd, EPOLLOUT);
       }
       break;
@@ -49,7 +86,7 @@ void EventHandler::do_read(int fd, Data &data) {
       // check if pair is done, then do delivery_data
       bool status = data.getBody().content == "OK";
       if (status && flag[fd] && localPool.count(fd) && flag[localPool[fd]]) {
-        data = Data(delivery_data, factory.toString(time(nullptr)),
+        data = DemoData(delivery_data, factory.toString(time(nullptr)),
                     ContentGenerator().generate(12));
         eventManager.modify_event(fd, EPOLLOUT);
       } else {
@@ -64,7 +101,7 @@ void EventHandler::do_read(int fd, Data &data) {
       break;
   }
 }
-void EventHandler ::do_write(int fd, Data &data) {
+void EventHandler ::do_write(int fd, DemoData &data) {
   if (fd == STDOUT_FILENO) {
     time_t cur = time(nullptr);
     tm *begin = new tm;
@@ -79,9 +116,9 @@ void EventHandler ::do_write(int fd, Data &data) {
     eventManager.delete_event(fd, EPOLLOUT);
   }
   // clean work
-  data = Data();
+  data = DemoData();
 }
-void EventHandler::handle(epoll_event *events, int num, Data &data) {
+void EventHandler::handle(epoll_event *events, int num, DemoData &data) {
   for (int i = 0; i < num; i++) {
     int fd = events[i].data.fd;
     if (events[i].events & EPOLLIN)

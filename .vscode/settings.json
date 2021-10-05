@@ -1,6 +1,6 @@
 {
         "files.associations": {
-                "*.h": "c",
+                "*.h": "cpp",
                 "algorithm": "cpp",
                 "any": "cpp",
                 "array": "cpp",
@@ -89,5 +89,5 @@
                 "variant": "cpp",
                 "*.inc": "cpp"
         },
-        "C_Cpp.errorSquiggles": "Disabled"
+        "C_Cpp.errorSquiggles": "Enabled"
 }

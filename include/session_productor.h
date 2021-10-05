@@ -4,8 +4,8 @@
 #include <utility>
 #include <vector>
 
-#include "session.cpp"
-#include "socket_productor.cpp"
+#include "session.h"
+#include "socket_productor.h"
 class SessionProductor {
  private:
   std::string ip;

@@ -3,7 +3,7 @@
 /// Note: handle_accpet don't contains the session-pairing work
 /// when accpet successed, write `fd` immidiately back to the
 /// client.
-void EventHandler::handle_accpet(Data &data) {
+void EventHandler::handle_accpet(DemoData &data) {
   sockaddr_in clientAddr;
   socklen_t clientAddrLen = sizeof(clientAddr);
   int clientFd =
@@ -14,14 +14,14 @@ void EventHandler::handle_accpet(Data &data) {
     std::string addr(inet_ntoa(clientAddr.sin_addr));
     int port = clientAddr.sin_port;
     printf("accept a new client: %s:%d\n", addr.data(), port);
-    data = Data(session_init, factory.toString<int>(clientFd));
+    data = DemoData(session_init, factory.toString<int>(clientFd));
     eventManager.add_event(clientFd, EPOLLOUT);
     if (!sessionManager.attach(Session(InetAddr(addr, port), clientFd))) {
       fprintf(stderr, "ServerEventHandler handle_accpet attach fails\n");
     }
   }
 }
-void EventHandler::do_read(int fd, Data &data) {
+void EventHandler::do_read(int fd, DemoData &data) {
   IOHandler ioHandler(fd);
   auto data = ioHandler.read();
   std::vector<int> destination;
@@ -59,13 +59,13 @@ void EventHandler::do_read(int fd, Data &data) {
       break;
   }
 }
-void EventHandler::do_write(int fd, Data &data) {
+void EventHandler::do_write(int fd, DemoData &data) {
   IOHandler ioHandler(fd);
   if (!ioHandler.write(data)) {
     eventManager.delete_event(fd, EPOLLOUT);
   }
   // clean work
-  data = Data();
+  data = DemoData();
 }
 
 EventHandler::EventHandler(int epollFd, int listenFd)
@@ -74,7 +74,7 @@ EventHandler::EventHandler(int epollFd, int listenFd)
       eventManager(EventManager(epollFd)) {
   eventManager.add_event(listenFd, EPOLLIN);
 }
-void EventHandler::handle(epoll_event *events, int num, Data &data) {
+void EventHandler::handle(epoll_event *events, int num, DemoData &data) {
   for (int i = 0; i < num; i++) {
     int fd = events[i].data.fd;
     if ((fd == listenFd) && (events[i].events & EPOLLIN))
