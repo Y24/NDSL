@@ -1,29 +1,7 @@
-#include <map>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
+#include "session_manager.h"
 
-#include "session.cpp"
-
-/// TODO:
-
-class SessionManager {
- private:
-  // fd: Session
-  std::unordered_map<int, Session> pool;
-
- public:
-  SessionManager() = default;
-  bool attach(Session s);
-  bool merge(std::vector<int> fd);
-  bool detach(int fd);
-  Session get(int fd);
-  std::vector<int> getDest(int fd);
-  ~SessionManager();
-};
 Session SessionManager::get(int fd) {
-  if(this->pool.count(fd))
-    return this->pool[fd];
+  if (this->pool.count(fd)) return this->pool[fd];
   return Session();
 }
 bool SessionManager::attach(Session s) {

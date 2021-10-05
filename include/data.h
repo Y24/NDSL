@@ -1,3 +1,5 @@
+#ifndef _DATA_H
+#define _DATA_H 1
 #include <ctime>
 #include <sstream>
 #include <string>
@@ -29,29 +31,16 @@ class Data {
  public:
   Data() = default;
   Data(Data& other) = default;
-  Data(DataType type) { this->header.type = type; }
-  Data(DataType type, std::string content) {
-    this->header.type = type;
-    this->body.content = content;
-  }
-  Data(DataType type, std::string timestamp, std::string content) {
-    this->header.type = type;
-    this->header.timestamp = timestamp;
-    this->body.content = content;
-  }
+  Data(DataType type);
+  Data(DataType type, std::string content);
+  Data(DataType type, std::string timestamp, std::string content);
   /// Layout: type(1 char) timestamp(time_t) content
-  Data(std::string source) {
-    this->header.type = factory.charToType(source[typeIdx]);
-    this->header.timestamp = source.substr(timestampIdx, sizeof(time_t));
-    this->body.content = source.substr(contentIdx);
-  }
-  std::string to() const {
-    return factory.typeToChar(header.type) + header.timestamp + body.content;
-  }
-  long long getSize() const { return contentIdx + body.content.size(); }
-  bool isNull() const { return header.type == data_invalid; }
-  DataHeader getHeader() const { return header; }
-  DataBody getBody() const { return body; }
+  Data(std::string source);
+  std::string to() const;
+  long long getSize() const;
+  bool isNull() const;
+  DataHeader getHeader();
+  DataBody getBody();
 };
 class DataFactory {
  private:
@@ -77,7 +66,4 @@ class DataFactory {
     return res;
   }
 };
-
-DataFactory::DataFactory() {}
-
-DataFactory::~DataFactory() {}
+#endif  // data.h

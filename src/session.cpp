@@ -1,23 +1,4 @@
-#include <unordered_map>
-#include <vector>
-
-#include "inet_addr.cpp"
-
-class Session {
- private:
-  std::unordered_map<InetAddr, int, InetAddrHash> fd;
-
- public:
-  Session() = default;
-  Session(std::vector<InetAddr> addrs, std::vector<int> fd);
-  Session(InetAddr addr, int fd);
-  bool insert(InetAddr addr, int fd);
-  bool contains(InetAddr addr);
-  bool merge(const Session& other);
-  ~Session();
-  bool isNull() const;
-  std::unordered_map<InetAddr, int, InetAddrHash> getFd() const;
-};
+#include "session.h"
 Session::Session(InetAddr addr, int fd) { this->fd[addr] = fd; }
 Session::Session(std::vector<InetAddr> addrs, std::vector<int> fd) {
   for (int i = 0; i < addrs.size(); i++) {
@@ -48,4 +29,5 @@ bool Session::merge(const Session& other) {
 std::unordered_map<InetAddr, int, InetAddrHash> Session::getFd() const {
   return fd;
 }
+Session::Session() {}
 Session::~Session() {}

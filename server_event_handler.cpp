@@ -42,7 +42,7 @@ class EventHandler {
     auto data = ioHandler.read();
     std::vector<int> destination;
     switch (data.getHeader().type) {
-      case invalid:
+      case data_invalid:
         eventManager.delete_event(fd, EPOLLIN);
         sessionManager.detach(fd);
         break;

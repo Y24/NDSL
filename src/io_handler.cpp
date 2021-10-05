@@ -1,29 +1,6 @@
 /// Note: IOHandler wrap all the raw read and write and provide a higher-level
-/// IO-fn
-/// TODO:
-#include <unistd.h>
-
-#include "data.cpp"
-class IOHandler {
- private:
-  int fd;
-  static const DataFactory factory;
-  static void inPanic(int fd) {
-    perror("read error:");
-    close(fd);
-  }
-  static void outPanic(int fd) {
-    perror("write error:");
-    close(fd);
-  }
-
- public:
-  IOHandler(int fd);
-  Data read();
-  bool write(Data data);
-  ~IOHandler();
-};
-
+///
+#include "io_handler.h"
 IOHandler::IOHandler(int fd) : fd(fd) {}
 Data IOHandler::read() {
   char buf[sizeof(long long) + 1];

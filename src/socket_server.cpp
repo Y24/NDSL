@@ -1,30 +1,4 @@
-#include <arpa/inet.h>
-#include <errno.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/epoll.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include<string>
-#include "server_epoll_manager.cpp"
-
-class SocketServer {
- private:
-  std::string ip;
-  int port;
-  int fd;
-  int waitings;
-  sockaddr_in addr;
-
- public:
-  SocketServer(std::string ip, int port, int waitings = 5);
-  bool init();
-  void serve(int size, int nEvents);
-  ~SocketServer();
-};
+#include "socket_server.h"
 SocketServer::SocketServer(std::string ip, int port, int waitings)
     : ip(ip), port(port), waitings(waitings) {
   fd = socket(AF_INET, SOCK_STREAM, 0);

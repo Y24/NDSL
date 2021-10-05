@@ -6,76 +6,102 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
+#include <unordered_map>
+
+#include "content_generator.cpp"
 #include "event_manager.cpp"
 #include "io_handler.cpp"
 #include "session_manager.cpp"
+#include "session_productor.cpp"
+#include "command.cpp"
 class EventHandler {
  private:
   int epollFd;
-  int listenFd;
   EventManager eventManager;
   SessionManager sessionManager;
+  SessionProductor sessionProductor;
   DataFactory factory;
-  /// Note: handle_accpet don't contains the session-pairing work
-  /// when accpet successed, write `fd` immidiately back to the
-  /// client.
-  void handle_accpet(Data &data) {
-    sockaddr_in clientAddr;
-    socklen_t clientAddrLen = sizeof(clientAddr);
-    int clientFd =
-        accept(listenFd, (struct sockaddr *)&clientAddr, &clientAddrLen);
-    if (clientFd == -1)
-      perror("accpet error:");
-    else {
-      std::string addr(inet_ntoa(clientAddr.sin_addr));
-      int port = clientAddr.sin_port;
-      printf("accept a new client: %s:%d\n", addr.data(), port);
-      data = Data(session_init, factory.toString<int>(clientFd));
-      eventManager.add_event(clientFd, EPOLLOUT);
-      if (!sessionManager.attach(Session(InetAddr(addr, port), clientFd))) {
-        fprintf(stderr, "ServerEventHandler handle_accpet attach fails\n");
-      }
-    }
-  }
+  /// clientfd: serverfd
+  std::unordered_map<int, int> remotePool;
+  /// clientfd: clientfd in the same session
+  std::unordered_map<int, int> localPool;
+  /// whether paired
+  std::unordered_map<int, bool> flag;
   void do_read(int fd, Data &data) {
+    if (fd == STDIN_FILENO) {
+      /// TODO: command execute
+      
+      return;
+    }
     IOHandler ioHandler(fd);
     auto data = ioHandler.read();
     std::vector<int> destination;
     switch (data.getHeader().type) {
-      case invalid:
+      case data_invalid:
         eventManager.delete_event(fd, EPOLLIN);
         sessionManager.detach(fd);
         break;
       case conn_close:
         if (!sessionManager.detach(fd)) {
-          fprintf(stderr, "ServerEventHandler do_read: conn_close fails\n");
+          fprintf(stderr, "ClientEventHandler do_read: conn_close fails\n");
         }
         break;
       case session_init:
-        // this cannot happen in server side.
-        fprintf(stderr, "ServerEventHandler do_read meets session_init!\n");
+        /// session_init at client side serves as a trigger event of
+        /// session_pair
+        int remoteFd = factory.stringTo<int>(data.getBody().content);
+        if (remotePool.count(fd) == 0) {
+          fprintf(stderr,
+                  "ClientEventHandler do_read: session_init remotePoll check "
+                  "fails\n");
+        }
+        remotePool[fd] = remoteFd;
+        flag[fd] = true;
+        if (localPool.count(fd) == 0) {
+          fprintf(stderr,
+                  "ClientEventHandler do_read: session_init localPool check "
+                  "fails\n");
+        } else if (flag[localPool[fd]]) {
+          sessionManager.merge({fd, localPool[fd]});
+        } else {
+          /// do session_pair
+          data =
+              Data(session_pair, factory.toString(remotePool[localPool[fd]]));
+          eventManager.modify_event(fd, EPOLLOUT);
+        }
         break;
       case session_pair:
-        int targetFd = factory.stringTo<int>(data.getBody().content);
-        if (!sessionManager.merge({fd, targetFd})) {
-          fprintf(stderr, "ServerEventHandler do_read: session_pair fails\n");
+        /// session_pair at client side serves as a trigger event of
+        /// delivery_data
+        // check if pair is done, then do delivery_data
+        bool status = data.getBody().content == "OK";
+        if (status && flag[fd] && localPool.count(fd) && flag[localPool[fd]]) {
+          data = Data(delivery_data, factory.toString(time(nullptr)),
+                      ContentGenerator().generate(12));
+          eventManager.modify_event(fd, EPOLLOUT);
+        } else {
+          fprintf(stderr, "ClientEventHandler do_read: session_pair fails\n");
         }
         break;
       case delivery_data:
-        destination = sessionManager.getDest(fd);
-        if (destination.size() != 1) {
-          fprintf(stderr,
-                  "ServerEventHandler do_read: delivery_data size == %!\n",
-                  destination.size());
-        }
-        eventManager.add_event(destination[0], EPOLLOUT);
+        eventManager.add_event(STDOUT_FILENO, EPOLLOUT);
         break;
       default:
-        fprintf(stderr, "ServerEventHandler do_read reach default case!\n");
+        fprintf(stderr, "ClientEventHandler do_read reach default case!\n");
         break;
     }
   }
   void do_write(int fd, Data &data) {
+    if (fd == STDOUT_FILENO) {
+      time_t cur = time(nullptr);
+      tm *begin = new tm;
+      strftime(data.getHeader().timestamp.data(), 64, "%Y-%m-%d %H:%M:%S",
+               begin);
+      fprintf(stdout, "Time delay: %lf ms\n",
+              (double)cur - mktime(begin) / CLOCKS_PER_SEC * 1000);
+      fprintf(stdout, "Data content: \n");
+      delete begin;
+    }
     IOHandler ioHandler(fd);
     if (!ioHandler.write(data)) {
       eventManager.delete_event(fd, EPOLLOUT);
@@ -85,23 +111,14 @@ class EventHandler {
   }
 
  public:
-  EventHandler(int epollFd, int listenFd);
+  EventHandler(int epollFd);
   void handle(epoll_event *events, int num, Data &data);
   ~EventHandler();
 };
-
-EventHandler::EventHandler(int epollFd, int listenFd)
-    : epollFd(epollFd),
-      listenFd(listenFd),
-      eventManager(EventManager(epollFd)) {
-  eventManager.add_event(listenFd, EPOLLIN);
-}
 void EventHandler::handle(epoll_event *events, int num, Data &data) {
   for (int i = 0; i < num; i++) {
     int fd = events[i].data.fd;
-    if ((fd == listenFd) && (events[i].events & EPOLLIN))
-      handle_accpet(data);
-    else if (events[i].events & EPOLLIN)
+    if (events[i].events & EPOLLIN)
       do_read(fd, data);
     else if (events[i].events & EPOLLOUT)
       do_write(fd, data);

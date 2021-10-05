@@ -1,23 +1,4 @@
-#include <sys/epoll.h>
-#include <unistd.h>
-
-#include "client_event_handler.cpp"
-class EpollManager {
- private:
-  int size;
-  int epollFd;
-  epoll_event* events;
-  int nEvents;
-  Data data;
-
-  EventHandler handler;
-
- public:
-  EpollManager(int size, int nEvents);
-  EpollManager(EpollManager& other);
-  void work();
-  ~EpollManager();
-};
+#include "client_epoll_manager.h"
 EpollManager::EpollManager(int size, int nEvents)
     : size(size),
       epollFd(epoll_create(size)),

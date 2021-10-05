@@ -8,4 +8,4 @@
 #define LISTENQ 5
 #define FDSIZE 1000
 #define EPOLLEVENTS 100
-#endif
+#endif // config.h
