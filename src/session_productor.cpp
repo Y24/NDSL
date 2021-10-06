@@ -7,7 +7,7 @@ void SessionProductor::config(std::string, int port) {
   this->socketProductor.config(ip, port);
 }
 Session SessionProductor::produce() {
-  return Session(InetAddr(this->ip, this->port), socketProductor.produce());
+  return Session(socketProductor.produce(), InetAddr(this->ip, this->port));
 }
 std::vector<Session> SessionProductor::produce(int num) {
   std::vector<Session> res;

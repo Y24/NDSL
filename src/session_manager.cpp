@@ -6,10 +6,10 @@ Session SessionManager::get(int fd) {
 }
 bool SessionManager::attach(Session s) {
   auto fdMap = s.getFd();
-  for (auto&& [_, fd] : fdMap) {
+  for (auto&& [fd, _] : fdMap) {
     if (pool.count(fd)) return false;
   }
-  for (auto&& [_, fd] : fdMap) {
+  for (auto&& [fd, _] : fdMap) {
     this->pool[fd] = s;
   }
   return true;
@@ -30,10 +30,10 @@ bool SessionManager::merge(std::vector<int> fd) {
 bool SessionManager::detach(int fd) {
   if (this->pool.count(fd) == 0) return false;
   auto fdMap = this->pool[fd].getFd();
-  for (auto&& [_, i] : fdMap) {
+  for (auto&& [i, _] : fdMap) {
     if (this->pool.count(i) == 0) return false;
   }
-  for (auto&& [_, i] : fdMap) {
+  for (auto&& [i, _] : fdMap) {
     this->pool.erase(i);
   }
   return true;
@@ -42,7 +42,7 @@ std::vector<int> SessionManager::getDest(int fd) {
   if (this->pool.count(fd) == 0) return {};
   auto fdMap = this->pool[fd].getFd();
   std::vector<int> res;
-  for (auto&& [_, i] : fdMap) {
+  for (auto&& [i, _] : fdMap) {
     if (i != fd) res.emplace_back(i);
   }
   return res;

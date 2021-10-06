@@ -21,4 +21,4 @@ class SessionManager {
   ~SessionManager();
 };
 
-#endif // session_manager.h
+#endif  // session_manager.h

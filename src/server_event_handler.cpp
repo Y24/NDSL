@@ -16,7 +16,7 @@ void EventHandler::handle_accpet(DemoData &data) {
     printf("accept a new client: %s:%d\n", addr.data(), port);
     data = DemoData(session_init, factory.toString<int>(clientFd));
     eventManager.add_event(clientFd, EPOLLOUT);
-    if (!sessionManager.attach(Session(InetAddr(addr, port), clientFd))) {
+    if (!sessionManager.attach(Session(clientFd,InetAddr(addr, port)))) {
       fprintf(stderr, "ServerEventHandler handle_accpet attach fails\n");
     }
   }

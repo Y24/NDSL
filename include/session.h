@@ -7,17 +7,17 @@
 
 class Session {
  private:
-  std::unordered_map<InetAddr, int, InetAddrHash> fd;
+  std::unordered_map<int, InetAddr> fd;
 
  public:
   Session() = default;
-  Session(std::vector<InetAddr> addrs, std::vector<int> fd);
-  Session(InetAddr addr, int fd);
-  bool insert(InetAddr addr, int fd);
-  bool contains(InetAddr addr);
+  Session(std::vector<int> fd, std::vector<InetAddr> addrs);
+  Session(int fd, InetAddr addr);
+  bool insert(int fd, InetAddr addr);
+  bool contains(int fd);
   bool merge(const Session& other);
   ~Session();
   bool isNull() const;
-  std::unordered_map<InetAddr, int, InetAddrHash> getFd() const;
+  std::unordered_map<int, InetAddr> getFd() const;
 };
-#endif // session.h
+#endif  // session.h

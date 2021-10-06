@@ -1,33 +1,31 @@
 #include "session.h"
-Session::Session(InetAddr addr, int fd) { this->fd[addr] = fd; }
-Session::Session(std::vector<InetAddr> addrs, std::vector<int> fd) {
-  for (int i = 0; i < addrs.size(); i++) {
-    this->fd[addrs[i]] = fd[i];
+Session::Session(int fd, InetAddr addr) { this->fd[fd] = addr; }
+Session::Session(std::vector<int> fd, std::vector<InetAddr> addrs) {
+  for (int i = 0; i < fd.size(); i++) {
+    this->fd[fd[i]] = addrs[i];
   }
 }
-bool Session::contains(InetAddr addr) { return this->fd.count(addr); }
-bool Session::insert(InetAddr addr, int fd) {
-  if (this->fd.count(addr)) return false;
-  this->fd[addr] = fd;
+bool Session::contains(int fd) { return this->fd.count(fd); }
+bool Session::insert(int fd, InetAddr addr) {
+  if (this->fd.count(fd)) return false;
+  this->fd[fd] = addr;
   return true;
 }
 bool Session::isNull() const {
   if (fd.empty()) return true;
-  for (auto [_, i] : fd)
-    if (i == -1) return true;
+  for (auto [fd, _] : fd)
+    if (fd == -1) return true;
   return true;
 }
 bool Session::merge(const Session& other) {
-  for (auto [addr, _] : other.getFd()) {
-    if (this->contains(addr)) return false;
+  for (auto [fd, _] : other.getFd()) {
+    if (this->contains(fd)) return false;
   }
-  for (auto [addr, fd] : other.getFd()) {
-    this->insert(addr, fd);
+  for (auto [fd, addr] : other.getFd()) {
+    this->insert(fd, addr);
   }
   return true;
 }
-std::unordered_map<InetAddr, int, InetAddrHash> Session::getFd() const {
-  return fd;
-}
+std::unordered_map<int, InetAddr> Session::getFd() const { return fd; }
 Session::Session() {}
 Session::~Session() {}

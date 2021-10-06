@@ -20,15 +20,16 @@ void EventHandler::do_read(int fd, DemoData &data) {
         break;
       case session_start:
         do_clean();
-        sessions = sessionProductor.produce(2 * command.nSession);
-        for (int i = 0; i < 2 * command.nSession; i += 2) {
-          int fd1 = sessions[i].getFd().begin()->second,
-              fd2 = sessions[i + 1].getFd().begin()->second;
+        sessions = sessionProductor.produce(2 * command.para);
+        for (int i = 0; i < 2 * command.para; i += 2) {
+          int fd1 = sessions[i].getFd().begin()->first;
+          int fd2 = sessions[i + 1].getFd().begin()->first;
           localPool[fd1] = fd2;
           localPool[fd2] = fd1;
           flag[fd1] = flag[fd2] = false;
         }
-        nContent = command.nContent;
+        break;
+      case session_test:
         break;
       case session_stop:
         do_clean();
